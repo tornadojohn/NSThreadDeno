@@ -14,6 +14,8 @@
     int _ticketsSold;
     int _ticketsRemain;
     NSLock* _lock;
+    
+    
 }
-
+@property (nonatomic,strong) NSOperationQueue *queue;
 @end

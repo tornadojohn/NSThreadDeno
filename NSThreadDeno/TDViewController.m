@@ -19,12 +19,30 @@
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
     UIButton* button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    [button setTitle:@"Download Image" forState:UIControlStateNormal];
+    [button setTitle:@"Download（NSThread）" forState:UIControlStateNormal];
     button.frame = CGRectMake(0, 0, 150, 30);
-    [button addTarget:self action:@selector(doDownloadImage) forControlEvents:UIControlEventTouchUpInside];
+    [button addTarget:self action:@selector(doDownloadImageThread) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:button];
     
-    _imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 40, 200, 400)];
+    button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    [button setTitle:@"Download（NSOperation）" forState:UIControlStateNormal];
+    button.frame = CGRectMake(0, 40, 150, 30);
+    [button addTarget:self action:@selector(doDownloadImageOperation) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:button];
+    
+    button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    [button setTitle:@"Download（GCD）" forState:UIControlStateNormal];
+    button.frame = CGRectMake(0, 80, 150, 30);
+    [button addTarget:self action:@selector(doDownloadImageGCD) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:button];
+    
+    button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    [button setTitle:@"Clean" forState:UIControlStateNormal];
+    button.frame = CGRectMake(0, 120, 150, 30);
+    [button addTarget:self action:@selector(clean) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:button];
+    
+    _imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 150, 200, 300)];
     [self.view addSubview:_imageView];
     
     button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
@@ -47,11 +65,41 @@
     // Dispose of any resources that can be recreated.
 }
 
-- (void)doDownloadImage
+- (void)clean
+{
+    _imageView.image = nil;
+}
+
+- (void)doDownloadImageThread
 {
     NSString* imageUrl = @"http://img.my.csdn.net/uploads/201111/14/0_1321288486r841.gif";
     NSThread *myThread = [[NSThread alloc] initWithTarget:self selector:@selector(downLoadImage:) object:imageUrl];
     [myThread start];
+}
+
+- (void)doDownloadImageOperation
+{
+    NSString* imageUrl = @"http://img.my.csdn.net/uploads/201111/14/0_1321288486r841.gif";
+    NSInvocationOperation *operation = [[NSInvocationOperation alloc] initWithTarget:self
+                                                                           selector:@selector(downLoadImage:)
+                                                                             object:imageUrl];
+    
+    self.queue = [[NSOperationQueue alloc] init];
+    [self.queue addOperation:operation];
+}
+
+- (void)doDownloadImageGCD
+{
+    NSString* imageUrl = @"http://img.my.csdn.net/uploads/201111/14/0_1321288486r841.gif";
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
+    {
+        NSData *data = [[NSData alloc] initWithContentsOfURL:[NSURL URLWithString:imageUrl]];
+        UIImage* image = [UIImage imageWithData:data];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            _imageView.image = image;
+        });
+                      
+    });
 }
 
 - (void)downLoadImage:(id)argu
