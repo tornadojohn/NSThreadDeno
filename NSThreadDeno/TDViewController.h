@@ -9,5 +9,11 @@
 #import <UIKit/UIKit.h>
 
 @interface TDViewController : UIViewController
+{
+    UIImageView* _imageView;
+    int _ticketsSold;
+    int _ticketsRemain;
+    NSLock* _lock;
+}
 
 @end
